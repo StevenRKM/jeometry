@@ -1,0 +1,4 @@
+jeometry
+========
+
+Javascript geometry library
