@@ -1,0 +1,413 @@
+<html>
+
+<head>
+    <title>Jeometry Canvas</title>
+
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+
+<script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+
+<script type="text/javascript" src="../jeometry-shapes.js"></script>
+<script type="text/javascript" src="../jeometry-functions.js"></script>
+<script type="text/javascript" src="../jeometry-random.js"></script>
+
+<script type="text/javascript" src="js/canvas-drawing.js"></script>
+
+<script type="text/javascript">
+var radioButtonValues = {};
+var checkboxButtonValues = {}
+
+// TODO make better scene lookup
+var previous = undefined;
+var previousSegment = undefined;
+var previousTriangle = undefined;
+var previousPoints = Array();
+var polygonBuild = Array();
+
+$(function() {
+    // radio button group mechanism
+    $(".btn-group[data-toggle='buttons-radio']").each(
+            function(i, element) {
+                element = $(element);
+                radioButtonValues[element.data('name')] = element.data('value');
+                element.find(".btn[data-value='"+element.data('value')+"']").addClass('active');
+            }
+    );
+
+    $(".btn-group[data-toggle='buttons-radio'] .btn").click(
+                function() {
+                    // only change if different
+                    group = $(this).closest(".btn-group");
+                    if( group.data('value') != $(this).data('value') ) {
+                        group.data('value', $(this).data('value'));
+                        radioButtonValues[group.data('name')] = group.data('value');
+                        radioButtonChanged(group.data('name'), group.data('value'));
+                    }
+                }
+    );
+
+    // checkbox button mechanism
+    $(".btn[data-toggle='buttons-checkbox']").each(
+            function(i, element) {
+                element = $(element);
+                checkboxButtonValues[element.data('name')] = element.hasClass('active');
+            }
+    );
+
+    $(".btn[data-toggle='buttons-checkbox']").click(
+            function() {
+                // attributes reversed since class changes happen after
+                checkboxButtonValues[$(this).data('name')] = !$(this).hasClass('active');
+                checkboxButtonChanged( $(this).data('name'), !$(this).hasClass('active'));
+            }
+    );
+
+    // regular button mechanism
+    $(".btn-group[data-toggle!='buttons-radio'] .btn[data-toggle!='buttons-checkbox']").click(
+            function() {
+                buttonClicked($(this).data('name'));
+            }
+    );
+
+    initCanvas({
+        'canvas': $('#canvas'),
+        'mouse': {
+            'move': mouseMove,
+            'down': mouseDown,
+            'up': mouseUp,
+            'out': mouseOut
+        }
+    });
+});
+
+function log(obj) {
+	console.log(obj);
+}
+
+function radioButtonChanged(name, value) {
+    log(name +" changed to "+value);
+
+    redraw();
+}
+
+function checkboxButtonChanged(name, value) {
+    log(name +" changed to "+value);
+
+    redraw();
+}
+
+function buttonClicked(name) {
+    log(name+" clicked");
+
+    if(name == "clear") {
+        clear();
+    } else if(name == "randomdots") {
+        drawfunction = function(element) {
+
+            if( radioButtonValues["function"] == "orientation") {
+
+                if(previousSegment != undefined) {
+                    o = orientation(previousSegment.p1, previousSegment.p2, element.shape);
+                    if(o==ORIENTATION_LEFT) setFillColor("red");
+                    else if(o==ORIENTATION_RIGHT) setFillColor("green");
+                    else if(o==ORIENTATION_COLLINEAR) setFillColor("yellow");
+
+                    drawPoint(element.shape);
+                    previousFillColor();
+                } else {
+                    drawPoint(element.shape);
+                }
+
+            } else if( radioButtonValues["function"] == "in_triangle") {
+
+                if(previousTriangle != undefined) {
+
+                    if( point_in_triangle(element.shape, previousTriangle) ) setFillColor("green");
+                    else setFillColor("red");
+
+                    drawPoint(element.shape);
+                    previousFillColor();
+                } else {
+                    drawPoint(element.shape);
+                }
+
+            } else {
+                drawPoint(element.shape);
+            }
+
+        };
+
+        for(i=0; i<100; i++)
+            addSceneElement( randomPointInBox(0,0,width, height), drawfunction);
+
+        redraw();
+    }
+}
+
+// MOUSE
+
+function mousePosition(e) {
+    return point(e.pageX-canvas.offsetLeft, e.pageY-canvas.offsetTop);
+}
+
+function mouseMove(pos) {
+    //log("move " + pos.x +", "+pos.y);
+
+    if( radioButtonValues["function"] == "orientation") {
+
+        redraw();
+
+        if(previousSegment != undefined) {
+            o = orientation(previousSegment.p1, previousSegment.p2, pos);
+            if(o==ORIENTATION_LEFT) setFillColor("red");
+            else if(o==ORIENTATION_RIGHT) setFillColor("green");
+            else if(o==ORIENTATION_COLLINEAR) setFillColor("yellow");
+
+            drawPoint(pos);
+            previousFillColor();
+        } else {
+            drawText("No previous segment", point(100,100));
+            drawPoint(pos);
+        }
+
+    } else if( radioButtonValues["function"] == "in_triangle") {
+
+        redraw();
+
+        if(previousTriangle != undefined) {
+
+            if( point_in_triangle(pos, previousTriangle) ) setFillColor("green");
+            else setFillColor("red");
+
+            drawPoint(pos);
+            previousFillColor();
+        } else {
+            drawText("No previous triangle", point(100,100));
+            drawPoint(pos);
+        }
+
+    } else if( radioButtonValues["shape"] == "line"
+                || radioButtonValues["shape"] == "segment") {
+        if( previous != undefined) {
+            redraw();
+            drawLine( segment(previous, pos) );
+
+            for(i in scene) {
+
+                if(scene[i].shape.type == SHAPE_SEGMENT) {
+                    p = intersect(scene[i].shape, segment(previous, pos));
+                    if(p) {
+                        drawPoint(p);
+                    }
+                } else if(scene[i].shape.type == SHAPE_TRIANGLE) {
+                    p1 = intersect(segment(scene[i].shape.p1, scene[i].shape.p2), segment(previous, pos));
+                    if(p1) {
+                        drawPoint(p1);
+                    }
+                    p2 = intersect(segment(scene[i].shape.p2, scene[i].shape.p3), segment(previous, pos));
+                    if(p2) {
+                        drawPoint(p2);
+                    }
+                    p3 = intersect(segment(scene[i].shape.p3, scene[i].shape.p1), segment(previous, pos));
+                    if(p3) {
+                        drawPoint(p3);
+                    }
+
+
+                    // divide the triangle !
+                    t1 = scene[i].shape.p1
+                    t2 = scene[i].shape.p2
+                    t3 = scene[i].shape.p3
+
+                    on_poly1 = true;
+
+                    polygon1 = Array();
+                    polygon2 = Array();
+
+                    if(on_poly1) polygon1.push(t1); else polygon2.push(t1);
+                    if(p1) {
+                        polygon1.push(p1);
+                        polygon2.push(p1);
+                        on_poly1 = !on_poly1;
+                    }
+                    if(on_poly1) polygon1.push(t2); else polygon2.push(t2);
+                    if(p2) {
+                        polygon1.push(p2);
+                        polygon2.push(p2);
+                        on_poly1 = !on_poly1;
+                    }
+                    if(on_poly1) polygon1.push(t3); else polygon2.push(t3);
+                    if(p3) {
+                        polygon1.push(p3);
+                        polygon2.push(p3);
+                        on_poly1 = !on_poly1;
+                    }
+
+                    console.log("polys");
+                    console.log(polygon1);
+                    console.log(polygon1);
+
+                    if(polygon1.length > 2) {
+                        setFillColor("green");
+                        drawPolygon(polygon(polygon1));
+                        previousFillColor();
+                    }
+
+                    if(polygon2.length > 2) {
+                        setFillColor("orange");
+                        drawPolygon(polygon(polygon2));
+                        previousFillColor();
+                    }
+
+
+                }
+            }
+
+        }
+    } else if( radioButtonValues["shape"] == "triangle") {
+
+        for(i in previousPoints)
+            drawPoint(previousPoints[i]);
+    }
+
+}
+
+function mouseDown(pos) {
+	//log("down " + pos.x +", "+pos.y);
+
+    if( radioButtonValues["shape"] == "point") {
+        addSceneElement(pos); //drawPoint(pos);
+        redraw();
+
+        if(previousSegment != undefined) {
+            o = orientation(previousSegment.p1, previousSegment.p2, pos);
+            if(o==ORIENTATION_LEFT) log("left");
+            else if(o==ORIENTATION_RIGHT) log("right");
+            else if(o==ORIENTATION_COLLINEAR) log("collinear");
+        }
+
+    } else if( radioButtonValues["shape"] == "segment"
+            || radioButtonValues["shape"] == "line") {
+        previous = pos;
+    } else if( radioButtonValues["shape"] == "triangle") {
+
+        if(previousPoints.length < 2) {
+            previousPoints.push(pos);
+            for(i in previousPoints)
+                drawPoint(previousPoints[i]);
+
+        } else {
+            t = triangle(previousPoints[0],previousPoints[1],pos)
+            previousTriangle = t;
+            addSceneElement( t );
+            previousPoints.splice(0, previousPoints.length);
+            redraw();
+        }
+    } else if( radioButtonValues["shape"] == "polygon") {
+
+        polygonBuild.push(pos);
+
+        if(polygonBuild.length < 3) {
+            for(i in polygonBuild)
+                drawPoint(polygonBuild[i]);
+
+        } else {
+
+            clear();
+            drawPolygon(polygon(polygonBuild));
+        }
+    }
+
+
+}
+
+function mouseUp(pos) {
+	//log("up " + pos.x +", "+pos.y);
+
+    if( radioButtonValues["shape"] == "point") {
+
+    } else if( radioButtonValues["shape"] == "segment") {
+        if( previous != undefined) {
+            addSceneElement( segment(previous, pos) );
+            previousSegment = segment(previous, pos);
+        }
+        previous = undefined;
+
+        redraw();
+    } else if( radioButtonValues["shape"] == "line") {
+        if( previous != undefined) {
+            addSceneElement( segment(previous, pos) );
+            previousSegment = segment(previous, pos);
+        }
+        previous = undefined;
+
+        redraw();
+    } else if( radioButtonValues["shape"] == "triangle") {
+    }
+}
+
+function mouseOut(pos) {
+	//log("out " + pos.x +", "+pos.y);
+}
+
+</script>
+
+<body style="background-color: #111111">
+
+    <div class="">
+
+        <div class="row">
+
+            <div class="span5">
+
+                <div class="btn-group" data-toggle="buttons-radio" data-value="draw" data-name="function">
+                    <button class="btn btn-large btn-primary" data-value="draw" >Draw</button>
+                    <button class="btn btn-large btn-primary" data-value="orientation">Orientation</button>
+                    <button class="btn btn-large btn-primary" data-value="in_triangle">In Triangle</button>
+                </div>
+
+                <br/>
+
+                <div class="btn-group" data-toggle="buttons-radio" data-value="point" data-name="shape">
+                    <button class="btn btn-large btn-primary" data-value="point" >Point</button>
+                    <!--<button class="btn btn-large btn-primary" data-value="line">Line</button>-->
+                    <button class="btn btn-large btn-primary" data-value="segment">Segment</button>
+                    <button class="btn btn-large btn-primary" data-value="triangle">Triangle</button>
+                    <button class="btn btn-large btn-primary" data-value="polygon">Polygon</button>
+                </div>
+
+                <br/>
+
+                <div class="btn-group">
+                    <button class="btn btn-large btn-info active" data-toggle="buttons-checkbox" data-name='coordinates'>Coordinates</button>
+                    <button class="btn btn-large btn-info" data-toggle="buttons-checkbox" data-name='distances'>Distances</button>
+                </div>
+
+                <br/>
+
+                <div class="btn-group">
+                    <button class="btn btn-large btn-success" data-name='randomdots'>Dots</button>
+                </div>
+
+                <br/>
+
+                <div class="btn-group">
+                    <button class="btn btn-large btn-warning" data-name='clear'>Clear</button>
+                </div>
+
+                <br/>
+
+            </div>
+
+            <div class="span11 offset1">
+                <canvas id="canvas" width="1400"height="800" style="border:2px solid;"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
