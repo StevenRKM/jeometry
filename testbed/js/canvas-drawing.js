@@ -35,6 +35,7 @@ function initCanvas(params) {
         if(params.mouse.up != undefined) canvas.addEventListener("mouseup",function(e){ params.mouse.up( mousePosition(e) ); },false);
         if(params.mouse.out != undefined) canvas.addEventListener("mouseout",function(e){ params.mouse.out( mousePosition(e) ); },false);
     }
+
 }
 
 // COLORS
@@ -61,19 +62,19 @@ function previousStrokeColor() {
 
 // SCENE
 var drawFunctions = {};
-drawFunctions[SHAPE_POINT] = function(element) {drawPoint(element.shape);};
-drawFunctions[SHAPE_SEGMENT] = function(element) {drawLine(element.shape);};
-drawFunctions[SHAPE_LINE] = function(element) {drawLine(element.shape);};
-drawFunctions[SHAPE_TRIANGLE] = function(element) {drawTriangle(element.shape);};
-drawFunctions[SHAPE_POLYGON] = function(element) {drawPolygon(element.shape);};
+drawFunctions[jeometry.PRIMITIVE_POINT] = function(element) {drawPoint(element.primitive);};
+drawFunctions[jeometry.PRIMITIVE_SEGMENT] = function(element) {drawLine(element.primitive);};
+drawFunctions[jeometry.PRIMITIVE_LINE] = function(element) {drawLine(element.primitive);};
+drawFunctions[jeometry.PRIMITIVE_TRIANGLE] = function(element) {drawTriangle(element.primitive);};
+drawFunctions[jeometry.PRIMITIVE_POLYGON] = function(element) {drawPolygon(element.primitive);};
 
 
-function addSceneElement(shape, draw) {
+function addSceneElement(primitive, draw) {
     // if not customized, attach
     if(draw == undefined) {
-        draw = drawFunctions[shape.type];
+        draw = drawFunctions[primitive.type];
     }
-    scene.push({'shape':shape, 'draw':draw})
+    scene.push({'primitive':primitive, 'draw':draw})
 }
 
 // DRAW
@@ -86,87 +87,87 @@ function redraw() {
     }
 }
 
-function drawPoint(shape) {
-    drawCircle( shape, 5);
-    drawCoords(shape);
+function drawPoint(primitive) {
+    drawCircle( primitive, 5);
+    drawCoords(primitive);
 }
 
-function drawCoords(shape) {
+function drawCoords(primitive) {
     if(checkboxButtonValues["coordinates"]) {
-        drawText(shape.x+", "+shape.y, pointAdd(shape, point(10,-10)));
+        drawText(Math.floor(primitive.x)+", "+Math.floor(primitive.y), jeometry.utils.point_add(primitive, jeometry.primitives.point(10,-10)));
     }
 }
 
-function drawLine(shape) {
+function drawLine(primitive) {
     context.beginPath();
-    context.moveTo(shape.p1.x,shape.p1.y);
-    context.lineTo(shape.p2.x,shape.p2.y);
+    context.moveTo(primitive.p1.x,primitive.p1.y);
+    context.lineTo(primitive.p2.x,primitive.p2.y);
     context.lineWidth=1;
     context.stroke();
     context.closePath();
 
     if( checkboxButtonValues["distances"]) {
         setFillColor("green");
-        drawText( Math.floor( distance(shape.p1, shape.p2) ), pointAdd(shape.p1, point(20,20)));
+        drawText( Math.floor( distance(primitive.p1, primitive.p2) ), jeometry.utils.point_add(primitive.p1, jeometry.primitives.point(20,20)));
         previousFillColor();
     }
 
-    drawCoords(shape.p1);
-    drawCoords(shape.p2);
+    drawCoords(primitive.p1);
+    drawCoords(primitive.p2);
 }
 
-function drawTriangle(shape) {
+function drawTriangle(primitive) {
     // TODO improve by using one path, not 3
-    drawLine(segment(shape.p1, shape.p2));
-    drawLine(segment(shape.p2, shape.p3));
-    drawLine(segment(shape.p3, shape.p1));
+    drawLine(jeometry.primitives.segment(primitive.p1, primitive.p2));
+    drawLine(jeometry.primitives.segment(primitive.p2, primitive.p3));
+    drawLine(jeometry.primitives.segment(primitive.p3, primitive.p1));
 }
 
-function drawPolygon(shape) {
-    console.log(shape);
+function drawPolygon(primitive) {
+    console.log(primitive);
 
 
     context.beginPath();
 
-    for(i in shape.points) {
+    for(i in primitive.points) {
         if(i == 0) {
             console.log("move to");
-            console.log(shape.points[i]);
-            context.moveTo(shape.points[i].x,shape.points[i].y);
+            console.log(primitive.points[i]);
+            context.moveTo(primitive.points[i].x,primitive.points[i].y);
         } else {
             console.log("line to");
-            console.log(shape.points[i]);
-            context.lineTo(shape.points[i].x,shape.points[i].y);
+            console.log(primitive.points[i]);
+            context.lineTo(primitive.points[i].x,primitive.points[i].y);
         }
     }
 
     console.log("line to");
-    console.log(shape.points[0]);
+    console.log(primitive.points[0]);
 
-    context.lineTo(shape.points[0].x,shape.points[0].y);
+    context.lineTo(primitive.points[0].x,primitive.points[0].y);
     context.lineWidth=1;
     context.stroke();
     context.fill();
     context.closePath();
 
-    for(i in shape.points) {
+    for(i in primitive.points) {
         console.log("coords");
-        console.log(shape.points[i]);
+        console.log(primitive.points[i]);
 
-        drawCoords(shape.points[i]);
+        drawCoords(primitive.points[i]);
     }
 }
 
-function drawCircle(shape, size) {
+function drawCircle(primitive, size) {
     context.beginPath();
-    context.arc(shape.x, shape.y, size, 0, Math.PI*2, false);
+    context.arc(primitive.x, primitive.y, size, 0, Math.PI*2, false);
     context.closePath();
 
     context.fill();
 }
 
-function drawText(text, shape) {
-    context.fillText(text, shape.x, shape.y);
+function drawText(text, primitive) {
+    context.fillText(text, primitive.x, primitive.y);
 }
 
 function clear() {

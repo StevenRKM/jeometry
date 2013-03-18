@@ -10,8 +10,11 @@
 <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
 <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
 
-<script type="text/javascript" src="../jeometry-shapes.js"></script>
-<script type="text/javascript" src="../jeometry-functions.js"></script>
+<script type="text/javascript" src="../jeometry-primitives.js"></script>
+<script type="text/javascript" src="../jeometry-utils.js"></script>
+<script type="text/javascript" src="../jeometry-distance.js"></script>
+<script type="text/javascript" src="../jeometry-intersect.js"></script>
+<script type="text/javascript" src="../jeometry-orientation.js"></script>
 <script type="text/javascript" src="../jeometry-random.js"></script>
 
 <script type="text/javascript" src="js/canvas-drawing.js"></script>
@@ -27,7 +30,7 @@ var previousTriangle = undefined;
 var previousPoints = Array();
 var polygonBuild = Array();
 
-$(function() {
+$(document).ready(function() {
     // radio button group mechanism
     $(".btn-group[data-toggle='buttons-radio']").each(
             function(i, element) {
@@ -81,6 +84,21 @@ $(function() {
             'out': mouseOut
         }
     });
+
+    addSceneElement(jeometry.primitives.segment(
+            jeometry.primitives.point(100, 300),
+            jeometry.primitives.point(1100, 300)
+    ));
+//    addSceneElement(jeometry.primitives.segment(
+//            jeometry.primitives.point(600, 100),
+//            jeometry.primitives.point(600, 500)
+//    ));
+//    p = jeometry.intersect(scene[1].primitive, scene[0].primitive);
+//    if(p) {
+//        addSceneElement(p);
+//    }
+    redraw();
+
 });
 
 function log(obj) {
@@ -110,32 +128,32 @@ function buttonClicked(name) {
             if( radioButtonValues["function"] == "orientation") {
 
                 if(previousSegment != undefined) {
-                    o = orientation(previousSegment.p1, previousSegment.p2, element.shape);
+                    o = orientation(previousSegment.p1, previousSegment.p2, element.primitive);
                     if(o==ORIENTATION_LEFT) setFillColor("red");
                     else if(o==ORIENTATION_RIGHT) setFillColor("green");
                     else if(o==ORIENTATION_COLLINEAR) setFillColor("yellow");
 
-                    drawPoint(element.shape);
+                    drawPoint(element.primitive);
                     previousFillColor();
                 } else {
-                    drawPoint(element.shape);
+                    drawPoint(element.primitive);
                 }
 
             } else if( radioButtonValues["function"] == "in_triangle") {
 
                 if(previousTriangle != undefined) {
 
-                    if( point_in_triangle(element.shape, previousTriangle) ) setFillColor("green");
+                    if( jeometry.in(element.primitive, previousTriangle) ) setFillColor("green");
                     else setFillColor("red");
 
-                    drawPoint(element.shape);
+                    drawPoint(element.primitive);
                     previousFillColor();
                 } else {
-                    drawPoint(element.shape);
+                    drawPoint(element.primitive);
                 }
 
             } else {
-                drawPoint(element.shape);
+                drawPoint(element.primitive);
             }
 
         };
@@ -150,7 +168,7 @@ function buttonClicked(name) {
 // MOUSE
 
 function mousePosition(e) {
-    return point(e.pageX-canvas.offsetLeft, e.pageY-canvas.offsetTop);
+    return jeometry.primitives.point(e.pageX-canvas.offsetLeft, e.pageY-canvas.offsetTop);
 }
 
 function mouseMove(pos) {
@@ -169,7 +187,7 @@ function mouseMove(pos) {
             drawPoint(pos);
             previousFillColor();
         } else {
-            drawText("No previous segment", point(100,100));
+            drawText("No previous segment", jeometry.primitives.point(100,100));
             drawPoint(pos);
         }
 
@@ -179,48 +197,48 @@ function mouseMove(pos) {
 
         if(previousTriangle != undefined) {
 
-            if( point_in_triangle(pos, previousTriangle) ) setFillColor("green");
+            if( jeometry.in(pos, previousTriangle) ) setFillColor("green");
             else setFillColor("red");
 
             drawPoint(pos);
             previousFillColor();
         } else {
-            drawText("No previous triangle", point(100,100));
+            drawText("No previous triangle", jeometry.primitives.point(100,100));
             drawPoint(pos);
         }
 
-    } else if( radioButtonValues["shape"] == "line"
-                || radioButtonValues["shape"] == "segment") {
+    } else if( radioButtonValues["primitive"] == "line"
+                || radioButtonValues["primitive"] == "segment") {
         if( previous != undefined) {
             redraw();
-            drawLine( segment(previous, pos) );
+            drawLine( jeometry.primitives.segment(previous, pos) );
 
             for(i in scene) {
 
-                if(scene[i].shape.type == SHAPE_SEGMENT) {
-                    p = intersect(scene[i].shape, segment(previous, pos));
+                if(scene[i].primitive.type == jeometry.PRIMITIVE_SEGMENT) {
+                    p = jeometry.intersect(scene[i].primitive, jeometry.primitives.segment(previous, pos));
                     if(p) {
                         drawPoint(p);
                     }
-                } else if(scene[i].shape.type == SHAPE_TRIANGLE) {
-                    p1 = intersect(segment(scene[i].shape.p1, scene[i].shape.p2), segment(previous, pos));
+                } else if(scene[i].primitive.type == jeometry.PRIMITIVE_TRIANGLE) {
+                    p1 = jeometry.intersect(jeometry.primitives.segment(scene[i].primitive.p1, scene[i].primitive.p2), jeometry.primitives.segment(previous, pos));
                     if(p1) {
                         drawPoint(p1);
                     }
-                    p2 = intersect(segment(scene[i].shape.p2, scene[i].shape.p3), segment(previous, pos));
+                    p2 = jeometry.intersect(jeometry.primitives.segment(scene[i].primitive.p2, scene[i].primitive.p3), jeometry.primitives.segment(previous, pos));
                     if(p2) {
                         drawPoint(p2);
                     }
-                    p3 = intersect(segment(scene[i].shape.p3, scene[i].shape.p1), segment(previous, pos));
+                    p3 = jeometry.intersect(jeometry.primitives.segment(scene[i].primitive.p3, scene[i].primitive.p1), jeometry.primitives.segment(previous, pos));
                     if(p3) {
                         drawPoint(p3);
                     }
 
 
                     // divide the triangle !
-                    t1 = scene[i].shape.p1
-                    t2 = scene[i].shape.p2
-                    t3 = scene[i].shape.p3
+                    t1 = scene[i].primitive.p1
+                    t2 = scene[i].primitive.p2
+                    t3 = scene[i].primitive.p3
 
                     on_poly1 = true;
 
@@ -252,13 +270,13 @@ function mouseMove(pos) {
 
                     if(polygon1.length > 2) {
                         setFillColor("green");
-                        drawPolygon(polygon(polygon1));
+                        drawPolygon(jeometry.primitives.polygon(polygon1));
                         previousFillColor();
                     }
 
                     if(polygon2.length > 2) {
                         setFillColor("orange");
-                        drawPolygon(polygon(polygon2));
+                        drawPolygon(jeometry.primitives.polygon(polygon2));
                         previousFillColor();
                     }
 
@@ -267,7 +285,7 @@ function mouseMove(pos) {
             }
 
         }
-    } else if( radioButtonValues["shape"] == "triangle") {
+    } else if( radioButtonValues["primitive"] == "triangle") {
 
         for(i in previousPoints)
             drawPoint(previousPoints[i]);
@@ -278,7 +296,7 @@ function mouseMove(pos) {
 function mouseDown(pos) {
 	//log("down " + pos.x +", "+pos.y);
 
-    if( radioButtonValues["shape"] == "point") {
+    if( radioButtonValues["primitive"] == "point") {
         addSceneElement(pos); //drawPoint(pos);
         redraw();
 
@@ -289,10 +307,10 @@ function mouseDown(pos) {
             else if(o==ORIENTATION_COLLINEAR) log("collinear");
         }
 
-    } else if( radioButtonValues["shape"] == "segment"
-            || radioButtonValues["shape"] == "line") {
+    } else if( radioButtonValues["primitive"] == "segment"
+            || radioButtonValues["primitive"] == "line") {
         previous = pos;
-    } else if( radioButtonValues["shape"] == "triangle") {
+    } else if( radioButtonValues["primitive"] == "triangle") {
 
         if(previousPoints.length < 2) {
             previousPoints.push(pos);
@@ -300,13 +318,13 @@ function mouseDown(pos) {
                 drawPoint(previousPoints[i]);
 
         } else {
-            t = triangle(previousPoints[0],previousPoints[1],pos)
+            t = jeometry.primitives.triangle(previousPoints[0],previousPoints[1],pos)
             previousTriangle = t;
             addSceneElement( t );
             previousPoints.splice(0, previousPoints.length);
             redraw();
         }
-    } else if( radioButtonValues["shape"] == "polygon") {
+    } else if( radioButtonValues["primitive"] == "polygon") {
 
         polygonBuild.push(pos);
 
@@ -317,7 +335,7 @@ function mouseDown(pos) {
         } else {
 
             clear();
-            drawPolygon(polygon(polygonBuild));
+            drawPolygon(jeometry.primitives.polygon(polygonBuild));
         }
     }
 
@@ -327,25 +345,25 @@ function mouseDown(pos) {
 function mouseUp(pos) {
 	//log("up " + pos.x +", "+pos.y);
 
-    if( radioButtonValues["shape"] == "point") {
+    if( radioButtonValues["primitive"] == "point") {
 
-    } else if( radioButtonValues["shape"] == "segment") {
+    } else if( radioButtonValues["primitive"] == "segment") {
         if( previous != undefined) {
-            addSceneElement( segment(previous, pos) );
-            previousSegment = segment(previous, pos);
+            addSceneElement( jeometry.primitives.segment(previous, pos) );
+            previousSegment = jeometry.primitives.segment(previous, pos);
         }
         previous = undefined;
 
         redraw();
-    } else if( radioButtonValues["shape"] == "line") {
+    } else if( radioButtonValues["primitive"] == "line") {
         if( previous != undefined) {
-            addSceneElement( segment(previous, pos) );
-            previousSegment = segment(previous, pos);
+            addSceneElement( jeometry.primitives.segment(previous, pos) );
+            previousSegment = jeometry.primitives.segment(previous, pos);
         }
         previous = undefined;
 
         redraw();
-    } else if( radioButtonValues["shape"] == "triangle") {
+    } else if( radioButtonValues["primitive"] == "triangle") {
     }
 }
 
@@ -371,7 +389,7 @@ function mouseOut(pos) {
 
                 <br/>
 
-                <div class="btn-group" data-toggle="buttons-radio" data-value="point" data-name="shape">
+                <div class="btn-group" data-toggle="buttons-radio" data-value="point" data-name="primitive">
                     <button class="btn btn-large btn-primary" data-value="point" >Point</button>
                     <!--<button class="btn btn-large btn-primary" data-value="line">Line</button>-->
                     <button class="btn btn-large btn-primary" data-value="segment">Segment</button>
