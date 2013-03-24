@@ -1,11 +1,11 @@
 (function( jeometry, undefined ) {
 
     jeometry.intersect = function(primitive1, primitive2) {
-        var intersect_function = jeometry.intersect_functions.get(primitive1.type, primitive2.type)
-        if(intersect_function != undefined)
-            return intersect_function(primitive1, primitive2);
-
-        return undefined
+        try{
+            return jeometry.intersect_functions.get(primitive1.type, primitive2.type)(primitive1, primitive2);
+        } catch(e) {
+            return undefined
+        }
     };
 
     jeometry.intersect_segments = function(segment1, segment2) {
