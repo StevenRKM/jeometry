@@ -4,36 +4,50 @@
      They simply consist out of their basic elements amd a type.
      */
 
-    // sub-namespace
-    jeometry.primitives = {};
+    var POINT = 100;
+    var SEGMENT = 200;
+    var LINE = 201;
+    var RAY = 202;
+    var RECTANGLE = 300;
+    var TRIANGLE = 301;
+    var CIRCLE = 302;
+    var POLYGON = 303;
 
-    jeometry.PRIMITIVE_POINT = 100;
-    jeometry.PRIMITIVE_SEGMENT = 200;
-    jeometry.PRIMITIVE_LINE = 201;
-    jeometry.PRIMITIVE_RAY = 202;
-    jeometry.PRIMITIVE_RECTANGLE = 300;
-    jeometry.PRIMITIVE_TRIANGLE = 301;
-    jeometry.PRIMITIVE_CIRCLE = 302;
-    jeometry.PRIMITIVE_POLYGON = 303;
-
-    jeometry.primitives.point = function(x, y) {
-        return {x:x, y:y, type:jeometry.PRIMITIVE_POINT};
+    var point = function(x, y) {
+        return {x:x, y:y, type:POINT};
     };
 
-    jeometry.primitives.segment = function(p1, p2) {
-        return {p1:p1, p2:p2, type:jeometry.PRIMITIVE_SEGMENT};
+    var segment = function(p1, p2) {
+        return {p1:p1, p2:p2, type:SEGMENT};
     };
 
-    jeometry.primitives.line = function(p1, p2) {
-        return {p1:p1, p2:p2, type:jeometry.PRIMITIVE_LINE};
+    var line = function(p1, p2) {
+        return {p1:p1, p2:p2, type:LINE};
     };
 
-    jeometry.primitives.triangle = function(p1, p2, p3) {
-        return {p1:p1, p2:p2, p3:p3, type:jeometry.PRIMITIVE_TRIANGLE};
+    var triangle = function(p1, p2, p3) {
+        return {p1:p1, p2:p2, p3:p3, type:TRIANGLE};
     };
 
-    jeometry.primitives.polygon = function(points) {
-        return {points:points, type:jeometry.PRIMITIVE_POLYGON};
+    var polygon = function(points) {
+        return {points:points, type:POLYGON};
     };
+
+    // tie to namespace
+    jeometry.primitives = {
+        POINT:POINT,
+        SEGMENT:SEGMENT,
+        LINE:LINE,
+        RAY:RAY,
+        RECTANGLE:RECTANGLE,
+        TRIANGLE:TRIANGLE,
+        CIRCLE:CIRCLE,
+        POLYGON:POLYGON,
+        point:point,
+        segment:segment,
+        line:line,
+        triangle:triangle,
+        polygon:polygon
+    }
 
 }( window.jeometry = window.jeometry || {} ));
