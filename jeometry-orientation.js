@@ -38,14 +38,14 @@
         If a point is on a side, it counts as being in the triangle.
         */
 
-        var orientation1 = jeometry.orientation.get(jeometry.primitives.line(triangle.p1, triangle.p2), point);
+        var orientation1 = get(jeometry.primitives.line(triangle.p1, triangle.p2), point);
         if( orientation1 == COLLINEAR ) return true;
 
-        var orientation2 = jeometry.orientation.get(jeometry.primitives.line(triangle.p2, triangle.p3), point);
+        var orientation2 = get(jeometry.primitives.line(triangle.p2, triangle.p3), point);
         if( orientation1 == COLLINEAR ) return true;
         if( orientation1 != orientation2 ) return false;
 
-        var orientation3 = jeometry.orientation.get(jeometry.primitives.line(triangle.p3, triangle.p1), point);
+        var orientation3 = get(jeometry.primitives.line(triangle.p3, triangle.p1), point);
         if( orientation3 == COLLINEAR ) return true;
         if( orientation1 != orientation3 ) return false;
 
