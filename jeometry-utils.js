@@ -1,25 +1,22 @@
 (function( jeometry, undefined ) {
 
-    // sub-namespace
-    jeometry.utils = {};
-
-    jeometry.utils.point_add = function(p1, p2) {
+    var point_add = function(p1, p2) {
         return jeometry.primitives.point(p1.x+p2.x, p1.y+p2.y);
     };
 
-    jeometry.utils.point_subtract = function(p1, p2) {
+    var point_subtract = function(p1, p2) {
         return jeometry.primitives.point(p1.x-p2.x, p1.y-p2.y);
     };
 
-    jeometry.utils.point_scalar = function(scalar, p1) {
+    var point_scalar = function(scalar, p1) {
         return jeometry.primitives.point(scalar*p1.x, scalar*p1.y);
     };
 
-    jeometry.utils.cross_product = function(p1, p2) {
+    var cross_product = function(p1, p2) {
         return (p1.x * p2.y) - (p1.y * p2.x);
     };
 
-    jeometry.utils.create_2d_symmetric_lookup = function(data) {
+    var create_2d_symmetric_lookup = function(data) {
         /*
         Creates a lookup table where the key is made up of two elements.
         These key elements can be given in any order, so the lookup is built symmetrical.
@@ -55,5 +52,15 @@
         return lookup;
 
     };
+
+    // tie to sub-namespace
+    jeometry.utils = {
+        point_add:point_add,
+        point_subtract:point_subtract,
+        point_scalar:point_scalar,
+        cross_product:cross_product,
+        create_2d_symmetric_lookup:create_2d_symmetric_lookup
+    };
+
 
 }( window.jeometry = window.jeometry || {} ));
