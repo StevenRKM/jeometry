@@ -24,7 +24,7 @@
          d = p.y - p1.y
 
          */
-        var test = (line.p2.x - line.p1.x) * (p.y - line.p1.y) - (p.x - line.p1.x) * (line.p2.y - line.p1.y);
+        var test = (line.p2.x - line.p1.x) * (point.y - line.p1.y) - (point.x - line.p1.x) * (line.p2.y - line.p1.y);
 
         if (test > 0) return LEFT;
         else if (test < 0) return RIGHT;
