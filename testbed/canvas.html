@@ -179,10 +179,10 @@ function mouseMove(pos) {
         redraw();
 
         if(previousSegment != undefined) {
-            o = orientation(previousSegment.p1, previousSegment.p2, pos);
-            if(o==ORIENTATION_LEFT) setFillColor("red");
-            else if(o==ORIENTATION_RIGHT) setFillColor("green");
-            else if(o==ORIENTATION_COLLINEAR) setFillColor("yellow");
+            o = jeometry.orientation.get(previousSegment, pos);
+            if(o==jeometry.orientation.LEFT) setFillColor("red");
+            else if(o==jeometry.orientation.RIGHT) setFillColor("green");
+            else if(o==jeometry.orientation.COLLINEAR) setFillColor("yellow");
 
             drawPoint(pos);
             previousFillColor();
@@ -197,7 +197,7 @@ function mouseMove(pos) {
 
         if(previousTriangle != undefined) {
 
-            if( jeometry.in(pos, previousTriangle) ) setFillColor("green");
+            if( jeometry.orientation.inside(pos, previousTriangle) ) setFillColor("green");
             else setFillColor("red");
 
             drawPoint(pos);
@@ -215,21 +215,21 @@ function mouseMove(pos) {
 
             for(i in scene) {
 
-                if(scene[i].primitive.type == jeometry.PRIMITIVE_SEGMENT) {
-                    p = jeometry.intersect(scene[i].primitive, jeometry.primitives.segment(previous, pos));
+                if(scene[i].primitive.type == jeometry.primitives.SEGMENT) {
+                    p = jeometry.intersection.get(scene[i].primitive, jeometry.primitives.segment(previous, pos));
                     if(p) {
                         drawPoint(p);
                     }
-                } else if(scene[i].primitive.type == jeometry.PRIMITIVE_TRIANGLE) {
-                    p1 = jeometry.intersect(jeometry.primitives.segment(scene[i].primitive.p1, scene[i].primitive.p2), jeometry.primitives.segment(previous, pos));
+                } else if(scene[i].primitive.type == jeometry.primitives.TRIANGLE) {
+                    p1 = jeometry.intersection.get(jeometry.primitives.segment(scene[i].primitive.p1, scene[i].primitive.p2), jeometry.primitives.segment(previous, pos));
                     if(p1) {
                         drawPoint(p1);
                     }
-                    p2 = jeometry.intersect(jeometry.primitives.segment(scene[i].primitive.p2, scene[i].primitive.p3), jeometry.primitives.segment(previous, pos));
+                    p2 = jeometry.intersection.get(jeometry.primitives.segment(scene[i].primitive.p2, scene[i].primitive.p3), jeometry.primitives.segment(previous, pos));
                     if(p2) {
                         drawPoint(p2);
                     }
-                    p3 = jeometry.intersect(jeometry.primitives.segment(scene[i].primitive.p3, scene[i].primitive.p1), jeometry.primitives.segment(previous, pos));
+                    p3 = jeometry.intersection.get(jeometry.primitives.segment(scene[i].primitive.p3, scene[i].primitive.p1), jeometry.primitives.segment(previous, pos));
                     if(p3) {
                         drawPoint(p3);
                     }
