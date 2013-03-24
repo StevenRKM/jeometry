@@ -11,6 +11,19 @@
 
     // TODO should accept any primitive combination
     var get = function(line, point) {
+        /*
+         method using determinant of a 2x2 matrix
+
+         | a b |
+         | c d | = ad - bc
+
+         where
+         a = p2.x - p1.x
+         b = p2.y - p1.y
+         c = p.x - p1.y
+         d = p.y - p1.y
+
+         */
         var test = (line.p2.x - line.p1.x) * (p.y - line.p1.y) - (p.x - line.p1.x) * (line.p2.y - line.p1.y);
 
         if (test > 0) return LEFT;
