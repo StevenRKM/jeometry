@@ -62,11 +62,11 @@ function previousStrokeColor() {
 
 // SCENE
 var drawFunctions = {};
-drawFunctions[jeometry.PRIMITIVE_POINT] = function(element) {drawPoint(element.primitive);};
-drawFunctions[jeometry.PRIMITIVE_SEGMENT] = function(element) {drawLine(element.primitive);};
-drawFunctions[jeometry.PRIMITIVE_LINE] = function(element) {drawLine(element.primitive);};
-drawFunctions[jeometry.PRIMITIVE_TRIANGLE] = function(element) {drawTriangle(element.primitive);};
-drawFunctions[jeometry.PRIMITIVE_POLYGON] = function(element) {drawPolygon(element.primitive);};
+drawFunctions[jeometry.primitives.POINT] = function(element) {drawPoint(element.primitive);};
+drawFunctions[jeometry.primitives.SEGMENT] = function(element) {drawLine(element.primitive);};
+drawFunctions[jeometry.primitives.LINE] = function(element) {drawLine(element.primitive);};
+drawFunctions[jeometry.primitives.TRIANGLE] = function(element) {drawTriangle(element.primitive);};
+drawFunctions[jeometry.primitives.POLYGON] = function(element) {drawPolygon(element.primitive);};
 
 
 function addSceneElement(primitive, draw) {
