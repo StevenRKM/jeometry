@@ -97,7 +97,7 @@
     };
 
     var _functions = jeometry.utils.create_2d_symmetric_lookup([
-        {key1: jeometry.PRIMITIVE_SEGMENT, key2: jeometry.PRIMITIVE_SEGMENT, value: segments },
+        {key1: jeometry.primitives.SEGMENT, key2: jeometry.primitives.SEGMENT, value: segments },
     ]);
 
     jeometry.intersection = {
