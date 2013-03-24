@@ -1,14 +1,14 @@
 (function( jeometry, undefined ) {
 
-    jeometry.intersect = function(primitive1, primitive2) {
+    var get = function(primitive1, primitive2) {
         try{
-            return jeometry.intersect_functions.get(primitive1.type, primitive2.type)(primitive1, primitive2);
+            return jeometry.intersection._functions.get(primitive1.type, primitive2.type)(primitive1, primitive2);
         } catch(e) {
-            return undefined
+            return undefined;
         }
     };
 
-    jeometry.intersect_segments = function(segment1, segment2) {
+    var segments = function(segment1, segment2) {
         /*
          method using cross products
 
@@ -96,8 +96,14 @@
         return jeometry.utils.point_add( p, jeometry.utils.point_scalar(t, r) );
     };
 
-    jeometry.intersect_functions = jeometry.utils.create_2d_symmetric_lookup([
-        {key1: jeometry.PRIMITIVE_SEGMENT, key2: jeometry.PRIMITIVE_SEGMENT, value: jeometry.intersect_segments },
+    var _functions = jeometry.utils.create_2d_symmetric_lookup([
+        {key1: jeometry.PRIMITIVE_SEGMENT, key2: jeometry.PRIMITIVE_SEGMENT, value: segments },
     ]);
+
+    jeometry.intersection = {
+        _functions:_functions,
+        get:get,
+        segments:segments
+    }
 
 }( window.jeometry = window.jeometry || {} ));
