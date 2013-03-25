@@ -123,15 +123,15 @@ function buttonClicked(name) {
     if(name == "clear") {
         clear();
     } else if(name == "randomdots") {
-        drawfunction = function(element) {
+        draw = function(element) {
 
             if( radioButtonValues["function"] == "orientation") {
 
                 if(previousSegment != undefined) {
-                    o = orientation(previousSegment.p1, previousSegment.p2, element.primitive);
-                    if(o==ORIENTATION_LEFT) setFillColor("red");
-                    else if(o==ORIENTATION_RIGHT) setFillColor("green");
-                    else if(o==ORIENTATION_COLLINEAR) setFillColor("yellow");
+                    o = jeometry.orientation.get(previousSegment, element.primitive);
+                    if(o==jeometry.orientation.LEFT) setFillColor("red");
+                    else if(o==jeometry.orientation.RIGHT) setFillColor("green");
+                    else if(o==jeometry.orientation.COLLINEAR) setFillColor("yellow");
 
                     drawPoint(element.primitive);
                     previousFillColor();
@@ -143,7 +143,7 @@ function buttonClicked(name) {
 
                 if(previousTriangle != undefined) {
 
-                    if( jeometry.in(element.primitive, previousTriangle) ) setFillColor("green");
+                    if( jeometry.orientation.inside(element.primitive, previousTriangle) ) setFillColor("green");
                     else setFillColor("red");
 
                     drawPoint(element.primitive);
@@ -159,7 +159,7 @@ function buttonClicked(name) {
         };
 
         for(i=0; i<100; i++)
-            addSceneElement( randomPointInBox(0,0,width, height), drawfunction);
+            addSceneElement( jeometry.random.pointInBox(0,0,width, height), draw);
 
         redraw();
     }
