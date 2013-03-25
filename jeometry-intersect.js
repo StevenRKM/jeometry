@@ -2,7 +2,7 @@
 
     var get = function(primitive1, primitive2) {
         try{
-            return jeometry.intersection._functions.get(primitive1.type, primitive2.type)(primitive1, primitive2);
+            return _functions.get(primitive1.type, primitive2.type)(primitive1, primitive2);
         } catch(e) {
             return undefined;
         }
@@ -96,7 +96,7 @@
         return jeometry.utils.point_add( p, jeometry.utils.point_scalar(t, r) );
     };
 
-    var _functions = jeometry.utils.create_2d_symmetric_lookup([
+    var _functions = jeometry.utils.create_2d_lookup([
         {key1: jeometry.primitives.SEGMENT, key2: jeometry.primitives.SEGMENT, value: segments },
     ]);
 
