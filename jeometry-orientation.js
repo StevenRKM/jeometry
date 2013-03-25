@@ -65,7 +65,11 @@
         if( orientation1 != orientation3 ) return false;
 
         return true;
-    }
+    };
+
+    var segment_in_triangle = function(segment, triangle) {
+        return point_in_triangle(segment.p1, triangle) && point_in_triangle(segment.p2, triangle);
+    };
 
     var _orientation_functions = jeometry.utils.create_2d_lookup([
         {key1: jeometry.primitives.POINT, key2: jeometry.primitives.LINE, value: point_to_line },
@@ -78,6 +82,7 @@
 
     var _inside_functions = jeometry.utils.create_2d_lookup([
         {key1: jeometry.primitives.POINT, key2: jeometry.primitives.TRIANGLE, value: point_in_triangle },
+        {key1: jeometry.primitives.SEGMENT, key2: jeometry.primitives.TRIANGLE, value: segment_in_triangle }
     ]);
 
     // tie to namespace
@@ -89,7 +94,8 @@
         get:get,
         point_to_line:point_to_line,
         inside:inside,
-        point_in_triangle:point_in_triangle
+        point_in_triangle:point_in_triangle,
+        segment_in_triangle:segment_in_triangle
     }
 
 }( window.jeometry = window.jeometry || {} ));
