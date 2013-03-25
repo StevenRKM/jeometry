@@ -7,7 +7,7 @@
 
     var pointInBox = function(x, y, width, height) {
         // [min, max] ==> min <= x <= max
-        return point(int(x, x+width), int(y, y+height));
+        return jeometry.primitives.point(int(x, x+width), int(y, y+height));
     };
 
     // tie to namespace
