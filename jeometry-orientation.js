@@ -40,7 +40,7 @@
 
     var inside = function(primitive1, primitive2) {
         try{
-            return _orientation_functions.get(primitive1.type, primitive2.type)(primitive1, primitive2);
+            return _inside_functions.get(primitive1.type, primitive2.type)(primitive1, primitive2);
         } catch(e) {
             // this will happen when asked if a primitive fits into a POINT, this of course can never be true
             return false;
