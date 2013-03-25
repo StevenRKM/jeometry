@@ -96,14 +96,43 @@
         return jeometry.utils.point_add( p, jeometry.utils.point_scalar(t, r) );
     };
 
+    var triangle_with_segment = function(triangle, segment) {
+        /*
+         easy algorithm, based upon the intersection of segments
+         can return 0, 1 or 2 intersection points:
+         0 = undefined
+         1 = [point]
+         2 = [point1, point2]
+         */
+
+        var intersections = new Array();
+        var i = segments(triangle.side1, segment);
+        if(i != undefined) intersections.push(i);
+        i = segments(triangle.side2, segment);
+        if(i != undefined) intersections.push(i);
+        i = segments(triangle.side3, segment);
+        if(i != undefined) intersections.push(i);
+
+        if(intersections.length == 0) {
+            return undefined;
+        }
+
+        return intersections;
+    };
+
     var _functions = jeometry.utils.create_2d_lookup([
         {key1: jeometry.primitives.SEGMENT, key2: jeometry.primitives.SEGMENT, value: segments },
+        {key1: jeometry.primitives.TRIANGLE, key2: jeometry.primitives.SEGMENT, value: triangle_with_segment },
+
+        // reversed parameters
+        {key1: jeometry.primitives.SEGMENT, key2: jeometry.primitives.TRIANGLE, value: function(i, j) {return triangle_with_segment(j, i);} }
     ]);
 
     jeometry.intersection = {
         _functions:_functions,
         get:get,
-        segments:segments
+        segments:segments,
+        triangle_with_segment:triangle_with_segment
     }
 
 }( window.jeometry = window.jeometry || {} ));
