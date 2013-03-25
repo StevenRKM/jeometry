@@ -26,7 +26,11 @@
     };
 
     var triangle = function(p1, p2, p3) {
-        return {p1:p1, p2:p2, p3:p3, type:TRIANGLE};
+        return {p1:p1, p2:p2, p3:p3,
+            side1: segment(p1, p2),
+            side2: segment(p2, p3),
+            side3: segment(p3, p1),
+            type:TRIANGLE};
     };
 
     var polygon = function(points) {
