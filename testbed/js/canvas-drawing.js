@@ -124,25 +124,16 @@ function drawTriangle(primitive) {
 }
 
 function drawPolygon(primitive) {
-    console.log(primitive);
-
 
     context.beginPath();
 
     for(i in primitive.points) {
         if(i == 0) {
-            console.log("move to");
-            console.log(primitive.points[i]);
             context.moveTo(primitive.points[i].x,primitive.points[i].y);
         } else {
-            console.log("line to");
-            console.log(primitive.points[i]);
             context.lineTo(primitive.points[i].x,primitive.points[i].y);
         }
     }
-
-    console.log("line to");
-    console.log(primitive.points[0]);
 
     context.lineTo(primitive.points[0].x,primitive.points[0].y);
     context.lineWidth=1;
@@ -151,9 +142,6 @@ function drawPolygon(primitive) {
     context.closePath();
 
     for(i in primitive.points) {
-        console.log("coords");
-        console.log(primitive.points[i]);
-
         drawCoords(primitive.points[i]);
     }
 }
