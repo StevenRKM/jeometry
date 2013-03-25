@@ -215,35 +215,38 @@ function mouseMove(pos) {
 
             for(i in scene) {
 
-                if(scene[i].primitive.type == jeometry.primitives.SEGMENT) {
-                    p = jeometry.intersection.get(scene[i].primitive, jeometry.primitives.segment(previous, pos));
-                    if(p) {
+                var segment = jeometry.primitives.segment(previous, pos);
+
+                p = jeometry.intersection.get(scene[i].primitive, segment);
+                try{
+                    if(p.length != undefined) {
+                        for(j in p) {
+                            drawPoint(p[j]);
+                        }
+                    } else {
                         drawPoint(p);
                     }
-                } else if(scene[i].primitive.type == jeometry.primitives.TRIANGLE) {
-                    p1 = jeometry.intersection.get(jeometry.primitives.segment(scene[i].primitive.p1, scene[i].primitive.p2), jeometry.primitives.segment(previous, pos));
-                    if(p1) {
-                        drawPoint(p1);
-                    }
-                    p2 = jeometry.intersection.get(jeometry.primitives.segment(scene[i].primitive.p2, scene[i].primitive.p3), jeometry.primitives.segment(previous, pos));
-                    if(p2) {
-                        drawPoint(p2);
-                    }
-                    p3 = jeometry.intersection.get(jeometry.primitives.segment(scene[i].primitive.p3, scene[i].primitive.p1), jeometry.primitives.segment(previous, pos));
-                    if(p3) {
-                        drawPoint(p3);
-                    }
 
+                } catch(e) {
+                    // it has no intersection
+                }
 
-                    // divide the triangle !
-                    t1 = scene[i].primitive.p1
-                    t2 = scene[i].primitive.p2
-                    t3 = scene[i].primitive.p3
+                if(scene[i].primitive.type == jeometry.primitives.TRIANGLE && p != undefined && p.length != undefined && p.length == 2) {
 
-                    on_poly1 = true;
+                    var triangle = scene[i].primitive;
 
-                    polygon1 = Array();
-                    polygon2 = Array();
+                    var p1 = jeometry.intersection.get(triangle.side1, segment);
+                    var p2 = jeometry.intersection.get(triangle.side2, segment);
+                    var p3 = jeometry.intersection.get(triangle.side3, segment);
+
+                    var t1 = triangle.p1;
+                    var t2 = triangle.p2;
+                    var t3 = triangle.p3;
+
+                    var on_poly1 = true;
+
+                    var polygon1 = Array();
+                    var polygon2 = Array();
 
                     if(on_poly1) polygon1.push(t1); else polygon2.push(t1);
                     if(p1) {
@@ -264,10 +267,6 @@ function mouseMove(pos) {
                         on_poly1 = !on_poly1;
                     }
 
-                    console.log("polys");
-                    console.log(polygon1);
-                    console.log(polygon1);
-
                     if(polygon1.length > 2) {
                         setFillColor("green");
                         drawPolygon(jeometry.primitives.polygon(polygon1));
@@ -281,7 +280,9 @@ function mouseMove(pos) {
                     }
 
 
+
                 }
+
             }
 
         }
