@@ -94,7 +94,7 @@ function drawPoint(primitive) {
 
 function drawCoords(primitive) {
     if(checkboxButtonValues["coordinates"]) {
-        drawText(Math.floor(primitive.x)+", "+Math.floor(primitive.y), jeometry.utils.point_add(primitive, jeometry.primitives.point(10,-10)));
+        drawText(Math.floor(primitive.x)+", "+Math.floor(primitive.y), primitive.add(jeometry.primitives.point(10,-10)));
     }
 }
 
@@ -108,7 +108,7 @@ function drawLine(primitive) {
 
     if( checkboxButtonValues["distances"]) {
         setFillColor("green");
-        drawText( Math.floor( distance(primitive.p1, primitive.p2) ), jeometry.utils.point_add(primitive.p1, jeometry.primitives.point(20,20)));
+        drawText( Math.floor( distance(primitive.p1, primitive.p2) ), primitive.p1.add(jeometry.primitives.point(20,20)));
         previousFillColor();
     }
 

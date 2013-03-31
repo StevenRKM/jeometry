@@ -62,18 +62,18 @@
         // --- cross product intersection
 
         var p = segment1.p1;
-        var r = jeometry.utils.point_subtract( segment1.p2, segment1.p1 );
+        var r = segment1.p2.subtract(segment1.p1);
         var q = segment2.p1;
-        var s = jeometry.utils.point_subtract( segment2.p2, segment2.p1 );
+        var s = segment2.p2.subtract(segment2.p1);
 
-        var r_x_s = jeometry.utils.cross_product(r, s);
+        var r_x_s = r.cross_product(s);
 
         // parallel
         if(r_x_s == 0)
             return undefined;
 
-        var q_p = jeometry.utils.point_subtract( q, p );
-        var q_p_x_s = jeometry.utils.cross_product(q_p, s);
+        var q_p = q.subtract(p);
+        var q_p_x_s = q_p.cross_product(s);
 
         if(q_p_x_s == 0)
             return undefined;
@@ -83,7 +83,7 @@
         if( t < 0 || t > 1)
             return undefined;
 
-        var q_p_x_r = jeometry.utils.cross_product(q_p, r);
+        var q_p_x_r = q_p.cross_product(r);
 
         if(q_p_x_r == 0)
             return undefined;
@@ -93,7 +93,7 @@
         if( u < 0 || u > 1)
             return undefined;
 
-        return jeometry.utils.point_add( p, jeometry.utils.point_scalar(t, r) );
+        return p.add(r.multiply_scalar(t));
     };
 
     var triangle_with_segment = function(triangle, segment) {

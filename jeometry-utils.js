@@ -1,21 +1,5 @@
 (function( jeometry, undefined ) {
 
-    var point_add = function(p1, p2) {
-        return jeometry.primitives.point(p1.x+p2.x, p1.y+p2.y);
-    };
-
-    var point_subtract = function(p1, p2) {
-        return jeometry.primitives.point(p1.x-p2.x, p1.y-p2.y);
-    };
-
-    var point_scalar = function(scalar, p1) {
-        return jeometry.primitives.point(scalar*p1.x, scalar*p1.y);
-    };
-
-    var cross_product = function(p1, p2) {
-        return (p1.x * p2.y) - (p1.y * p2.x);
-    };
-
     var create_2d_lookup = function(data) {
         /*
          Creates a lookup table where the key is made up of two elements.
@@ -91,10 +75,6 @@
 
     // tie to namespace
     jeometry.utils = {
-        point_add:point_add,
-        point_subtract:point_subtract,
-        point_scalar:point_scalar,
-        cross_product:cross_product,
         create_2d_lookup:create_2d_lookup,
         create_2d_symmetric_lookup:create_2d_symmetric_lookup
     };
