@@ -12,6 +12,7 @@
 
 <script type="text/javascript" src="../jeometry-primitives.js"></script>
 <script type="text/javascript" src="../jeometry-utils.js"></script>
+<script type="text/javascript" src="../jeometry-general.js"></script>
 <script type="text/javascript" src="../jeometry-distance.js"></script>
 <script type="text/javascript" src="../jeometry-intersect.js"></script>
 <script type="text/javascript" src="../jeometry-orientation.js"></script>
@@ -213,18 +214,51 @@ function mouseMove(pos) {
             redraw();
             drawLine( jeometry.primitives.segment(previous, pos) );
 
-            for(i in scene) {
+            for(var i in scene) {
 
                 var segment = jeometry.primitives.segment(previous, pos);
 
-                p = jeometry.intersection.get(scene[i].primitive, segment);
+                var p = jeometry.intersection.get(scene[i].primitive, segment);
                 try{
-                    if(p.length != undefined) {
+                    if(p.type == undefined) {
                         for(j in p) {
                             drawPoint(p[j]);
                         }
                     } else {
                         drawPoint(p);
+
+                        if(scene[i].primitive.type == jeometry.primitives.SEGMENT) {
+
+                            var segment2 = scene[i].primitive;
+
+                            var vector_v = segment.p1.subtract(p);
+                            var vector_s = segment2.p1.subtract(p);
+
+                            var normal = jeometry.primitives.segment(vector_s, jeometry.primitives.point(0,0)).normal();
+                            var vector_n = normal.p1.negate();
+
+                            var vector_n_unit = vector_n.divide_scalar( normal.length() );
+
+                            var dot = vector_n_unit.x*vector_v.x +vector_n_unit.y*vector_v.y;
+                            var vector_dot = vector_n_unit.multiply_scalar(dot);
+
+
+                            setStrokeColor("orange");
+                            drawLine(jeometry.primitives.segment(p, vector_v.add(p)));
+                            drawLine(jeometry.primitives.segment(p, vector_s.add(p)));
+                            drawLine(jeometry.primitives.segment(p, vector_n.add(p)));
+                            setStrokeColor("blue");
+                            drawLine(jeometry.primitives.segment(p, vector_n.add(vector_v).add(p)));
+//                            drawLine(jeometry.primitives.segment(sum, p));
+                            setStrokeColor("green");
+                            drawLine(jeometry.primitives.segment(p, vector_dot.add(p)));
+                            var r = jeometry.primitives.segment(p, vector_v.negate().add(vector_dot.multiply_scalar(2)).add(p));
+                            drawLine(r);
+                            for(var ii=0.1; ii<1.0; ii+=0.1)
+                                drawPoint(r.point_on_segment(ii));
+//                            drawLine(jeometry.primitives.segment(a, p));
+                            setStrokeColor("red");
+                        }
                     }
 
                 } catch(e) {
