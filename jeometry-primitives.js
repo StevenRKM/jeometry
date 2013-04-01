@@ -21,7 +21,8 @@
             divide_scalar:function(scalar) {return point(this.x/scalar, this.y/scalar);},
             negate:function() {return point(-this.x, -this.y)},
             cross_product:function(p) {return (this.x * p.y) - (this.y * p.x);},
-            dot_product:function(p) {return (this.x * p.y) + (this.y * p.y);},
+            dot_product:function(p) {return (this.x * p.x) + (this.y * p.y);},
+            normal:function() {return jeometry.normal(this);},
             length:function() {return Math.sqrt( Math.pow(this.x, 2) + Math.pow(this.y, 2) );},
             normalize:function() {var l=this.length(); return (l!=0)?this.divide_scalar(l):point(0,0);},
             clone:function() {return point(this.x, this.y);}

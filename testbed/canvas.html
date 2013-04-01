@@ -86,10 +86,18 @@ $(document).ready(function() {
         }
     });
 
-    addSceneElement(jeometry.primitives.segment(
-            jeometry.primitives.point(100, 300),
-            jeometry.primitives.point(1100, 300)
-    ));
+
+    var mid = height/2;
+    for(var i=200; i<=height-200; i+=100) {
+        var segment = jeometry.primitives.segment(
+                jeometry.primitives.point(0, mid),
+                jeometry.primitives.point(1100, i)
+        );
+        segment.type = 9000;
+
+        addSceneElement(segment, draw_reflection);
+//        break;
+    }
 //    addSceneElement(jeometry.primitives.segment(
 //            jeometry.primitives.point(600, 100),
 //            jeometry.primitives.point(600, 500)
@@ -101,6 +109,78 @@ $(document).ready(function() {
     redraw();
 
 });
+
+function draw_reflection(element) {
+    var max = 10;
+    setStrokeColor("green");
+
+    var segment = element.primitive.clone();
+
+    draw_reflection_single(segment, max);
+    setStrokeColor("red");
+
+//    var hits = 0;
+//    for(i=0; i<scene.length; i++) {
+//        if(scene[i].primitive.type != jeometry.primitives.SEGMENT)
+//            continue;
+//
+//        var segment2 = scene[i].primitive;
+//        var p = jeometry.intersection.get(segment2, segment);
+//
+//        if(p!=undefined) {
+//            drawLine( jeometry.primitives.segment(segment.p1, p) );
+//
+//            segment = jeometry.reflection(segment, segment2);
+////            segment.p2 = segment.p2.subtract(p).normalize().multiply_scalar(500).add(p);
+//
+//            // stop condition
+//            hits++;
+//            if(hits>max) {
+//                previousStrokeColor();
+//                return;
+//            } else {
+////                i=-1;
+//            }
+//
+//        }
+//
+//    }
+//
+//    drawLine(segment);
+//    previousStrokeColor();
+
+}
+
+function draw_reflection_single(segment, max) {
+
+    // stop condition
+    if(max <= 0) {
+        drawLine(segment);
+        return;
+    }
+
+    for(var i in scene) {
+        if(scene[i].primitive.type != jeometry.primitives.SEGMENT)
+            continue;
+
+        var segment2 = scene[i].primitive;
+        var p = jeometry.intersection.get(segment2, segment);
+
+        if(p!=undefined) {
+            drawLine( jeometry.primitives.segment(segment.p1, p) );
+
+            segment = jeometry.reflection(segment, segment2);
+//            segment.p2 = segment.p2.subtract(p).normalize().multiply_scalar(500).add(p);
+
+            return draw_reflection_single(segment, max-1);
+
+        }
+
+    }
+
+    drawLine(segment);
+
+}
 
 function log(obj) {
 	console.log(obj);
@@ -123,6 +203,9 @@ function buttonClicked(name) {
 
     if(name == "clear") {
         clear();
+    } else if(name == "undo") {
+        scene.pop()
+        redraw();
     } else if(name == "randomdots") {
         draw = function(element) {
 
@@ -208,6 +291,50 @@ function mouseMove(pos) {
             drawPoint(pos);
         }
 
+    } else if(radioButtonValues["function"] == "reflection") {
+
+        if( previous != undefined) {
+            redraw();
+
+            var segment = jeometry.primitives.segment(previous, pos);
+//            drawLine( segment );
+
+            setStrokeColor("green");
+
+            var hits = 0;
+
+            for(var i in scene) {
+                log("check "+i);
+
+                if(scene[i].primitive.type == jeometry.primitives.SEGMENT) {
+
+                    var segment2 = scene[i].primitive;
+                    var p = jeometry.intersection.get(segment2, segment);
+
+                    if(p!=undefined) {
+                        drawLine( jeometry.primitives.segment(segment.p1, p) );
+
+                        segment = jeometry.reflection(segment, segment2);
+//                        drawLine(segment);
+                        hits++;
+                        if(hits>3) {
+                            log("max");
+                            return;
+                        } else {
+                            log("reset");
+                            i=0;
+                        }
+
+                    }
+                }
+
+            }
+
+        }
+
+        drawLine( segment );
+        setStrokeColor("red");
+
     } else if( radioButtonValues["primitive"] == "line"
                 || radioButtonValues["primitive"] == "segment") {
         if( previous != undefined) {
@@ -231,33 +358,37 @@ function mouseMove(pos) {
 
                             var segment2 = scene[i].primitive;
 
-                            var vector_v = segment.p1.subtract(p);
-                            var vector_s = segment2.p1.subtract(p);
-
-                            var normal = jeometry.primitives.segment(vector_s, jeometry.primitives.point(0,0)).normal();
-                            var vector_n = normal.p1.negate();
-
-                            var vector_n_unit = vector_n.divide_scalar( normal.length() );
-
-                            var dot = vector_n_unit.x*vector_v.x +vector_n_unit.y*vector_v.y;
-                            var vector_dot = vector_n_unit.multiply_scalar(dot);
-
-
-                            setStrokeColor("orange");
-                            drawLine(jeometry.primitives.segment(p, vector_v.add(p)));
-                            drawLine(jeometry.primitives.segment(p, vector_s.add(p)));
-                            drawLine(jeometry.primitives.segment(p, vector_n.add(p)));
-                            setStrokeColor("blue");
-                            drawLine(jeometry.primitives.segment(p, vector_n.add(vector_v).add(p)));
-//                            drawLine(jeometry.primitives.segment(sum, p));
                             setStrokeColor("green");
-                            drawLine(jeometry.primitives.segment(p, vector_dot.add(p)));
-                            var r = jeometry.primitives.segment(p, vector_v.negate().add(vector_dot.multiply_scalar(2)).add(p));
-                            drawLine(r);
-                            for(var ii=0.1; ii<1.0; ii+=0.1)
-                                drawPoint(r.point_on_segment(ii));
-//                            drawLine(jeometry.primitives.segment(a, p));
+                            drawLine(jeometry.reflection(segment, segment2));
                             setStrokeColor("red");
+
+//                            var vector_v = segment.p1.subtract(p);
+//                            var vector_s = segment2.p1.subtract(p);
+//
+//                            var normal = jeometry.primitives.segment(vector_s, jeometry.primitives.point(0,0)).normal();
+//                            var vector_n = normal.p1.negate();
+//
+//                            var vector_n_unit = vector_n.normalize();
+//
+//                            var dot = vector_n_unit.dot_product(vector_v);
+//                            var vector_dot = vector_n_unit.multiply_scalar(dot);
+//
+//
+//                            setStrokeColor("orange");
+//                            drawLine(jeometry.primitives.segment(p, vector_v.add(p)));
+//                            drawLine(jeometry.primitives.segment(p, vector_s.add(p)));
+//                            drawLine(jeometry.primitives.segment(p, vector_n.add(p)));
+//                            setStrokeColor("blue");
+//                            drawLine(jeometry.primitives.segment(p, vector_n.add(vector_v).add(p)));
+////                            drawLine(jeometry.primitives.segment(sum, p));
+//                            setStrokeColor("green");
+//                            drawLine(jeometry.primitives.segment(p, vector_dot.add(p)));
+//                            var r = jeometry.primitives.segment(p, vector_v.negate().add(vector_dot.multiply_scalar(2)).add(p));
+//                            drawLine(r);
+////                            for(var ii=0.1; ii<1.0; ii+=0.1)
+////                                drawPoint(r.point_on_segment(ii));
+////                            drawLine(jeometry.primitives.segment(a, p));
+//                            setStrokeColor("red");
                         }
                     }
 
@@ -419,7 +550,8 @@ function mouseOut(pos) {
                 <div class="btn-group" data-toggle="buttons-radio" data-value="draw" data-name="function">
                     <button class="btn btn-large btn-primary" data-value="draw" >Draw</button>
                     <button class="btn btn-large btn-primary" data-value="orientation">Orientation</button>
-                    <button class="btn btn-large btn-primary" data-value="in_triangle">In Triangle</button>
+                    <button class="btn btn-large btn-primary" data-value="in_triangle">In</button>
+                    <button class="btn btn-large btn-primary" data-value="reflection">Reflection</button>
                 </div>
 
                 <br/>
@@ -435,7 +567,8 @@ function mouseOut(pos) {
                 <br/>
 
                 <div class="btn-group">
-                    <button class="btn btn-large btn-info active" data-toggle="buttons-checkbox" data-name='coordinates'>Coordinates</button>
+                    <!--<button class="btn btn-large btn-info active" data-toggle="buttons-checkbox" data-name='coordinates'>Coordinates</button>-->
+                    <button class="btn btn-large btn-info" data-toggle="buttons-checkbox" data-name='coordinates'>Coordinates</button>
                     <button class="btn btn-large btn-info" data-toggle="buttons-checkbox" data-name='distances'>Distances</button>
                 </div>
 
@@ -449,6 +582,7 @@ function mouseOut(pos) {
 
                 <div class="btn-group">
                     <button class="btn btn-large btn-warning" data-name='clear'>Clear</button>
+                    <button class="btn btn-large btn-warning" data-name='undo'>Undo</button>
                 </div>
 
                 <br/>
