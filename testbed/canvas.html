@@ -111,47 +111,25 @@ $(document).ready(function() {
 });
 
 function draw_reflection(element) {
-    var max = 10;
+    var max = 20;
     setStrokeColor("green");
 
     var segment = element.primitive.clone();
 
-    draw_reflection_single(segment, max);
+    draw_reflection_single(segment, max, undefined);
     setStrokeColor("red");
-
-//    var hits = 0;
-//    for(i=0; i<scene.length; i++) {
-//        if(scene[i].primitive.type != jeometry.primitives.SEGMENT)
-//            continue;
-//
-//        var segment2 = scene[i].primitive;
-//        var p = jeometry.intersection.get(segment2, segment);
-//
-//        if(p!=undefined) {
-//            drawLine( jeometry.primitives.segment(segment.p1, p) );
-//
-//            segment = jeometry.reflection(segment, segment2);
-////            segment.p2 = segment.p2.subtract(p).normalize().multiply_scalar(500).add(p);
-//
-//            // stop condition
-//            hits++;
-//            if(hits>max) {
-//                previousStrokeColor();
-//                return;
-//            } else {
-////                i=-1;
-//            }
-//
-//        }
-//
-//    }
-//
-//    drawLine(segment);
-//    previousStrokeColor();
 
 }
 
-function draw_reflection_single(segment, max) {
+function draw_reflection_single(segment, max, last) {
+
+    if(segment.length()<=0.0005)
+        return;
+
+//    setStrokeColor("orange");
+//    if(segment.length()>=0.0005)
+//        drawLine(segment);
+    setStrokeColor("green");
 
     // stop condition
     if(max <= 0) {
@@ -163,6 +141,9 @@ function draw_reflection_single(segment, max) {
         if(scene[i].primitive.type != jeometry.primitives.SEGMENT)
             continue;
 
+        if(scene[i].primitive == last)
+            continue;
+
         var segment2 = scene[i].primitive;
         var p = jeometry.intersection.get(segment2, segment);
 
@@ -170,13 +151,14 @@ function draw_reflection_single(segment, max) {
             drawLine( jeometry.primitives.segment(segment.p1, p) );
 
             segment = jeometry.reflection(segment, segment2);
-//            segment.p2 = segment.p2.subtract(p).normalize().multiply_scalar(500).add(p);
+            segment.p2 = segment.p2.subtract(p).normalize().multiply_scalar(500).add(p);
 
-            return draw_reflection_single(segment, max-1);
+            return draw_reflection_single(segment.clone(), max-1, segment2);
 
         }
 
     }
+
 
     drawLine(segment);
 
@@ -339,11 +321,21 @@ function mouseMove(pos) {
                 || radioButtonValues["primitive"] == "segment") {
         if( previous != undefined) {
             redraw();
+
+            var segment = jeometry.primitives.segment(previous, pos);
+
+            if(scene.length > 0
+                    && scene[scene.length-1].primitive.type == jeometry.primitives.SEGMENT
+                    && scene[scene.length-1].primitive.p1.x == previous.x
+                    && scene[scene.length-1].primitive.p1.y == previous.y) {
+                scene[scene.length-1].primitive.p2 = pos.clone();
+            } else {
+                addSceneElement(segment);
+            }
+
             drawLine( jeometry.primitives.segment(previous, pos) );
 
             for(var i in scene) {
-
-                var segment = jeometry.primitives.segment(previous, pos);
 
                 var p = jeometry.intersection.get(scene[i].primitive, segment);
                 try{
@@ -354,13 +346,13 @@ function mouseMove(pos) {
                     } else {
                         drawPoint(p);
 
-                        if(scene[i].primitive.type == jeometry.primitives.SEGMENT) {
+//                        if(scene[i].primitive.type == jeometry.primitives.SEGMENT) {
+//
+//                            var segment2 = scene[i].primitive;
 
-                            var segment2 = scene[i].primitive;
-
-                            setStrokeColor("green");
-                            drawLine(jeometry.reflection(segment, segment2));
-                            setStrokeColor("red");
+//                            setStrokeColor("green");
+//                            drawLine(jeometry.reflection(segment, segment2));
+//                            setStrokeColor("red");
 
 //                            var vector_v = segment.p1.subtract(p);
 //                            var vector_s = segment2.p1.subtract(p);
@@ -389,7 +381,7 @@ function mouseMove(pos) {
 ////                                drawPoint(r.point_on_segment(ii));
 ////                            drawLine(jeometry.primitives.segment(a, p));
 //                            setStrokeColor("red");
-                        }
+//                        }
                     }
 
                 } catch(e) {
@@ -515,7 +507,7 @@ function mouseUp(pos) {
 
     } else if( radioButtonValues["primitive"] == "segment") {
         if( previous != undefined) {
-            addSceneElement( jeometry.primitives.segment(previous, pos) );
+//            addSceneElement( jeometry.primitives.segment(previous, pos) );
             previousSegment = jeometry.primitives.segment(previous, pos);
         }
         previous = undefined;
