@@ -31,7 +31,7 @@
 
         // --- fast bounding box checks
 
-        // TODO could be used for intersext of two AABB's
+        // TODO could be used for intersect of two AABB's
 
         // check x-axis
 
