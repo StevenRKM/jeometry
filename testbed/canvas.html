@@ -88,9 +88,9 @@ $(document).ready(function() {
 
 
     var mid = height/2;
-    for(var i=200; i<=height-200; i+=100) {
+    for(var i=200; i<=height-200; i+=10) {
         var segment = jeometry.primitives.segment(
-                jeometry.primitives.point(0, mid),
+                jeometry.primitives.point(100, mid),
                 jeometry.primitives.point(1100, i)
         );
         segment.type = 9000;
@@ -133,10 +133,11 @@ function draw_reflection_single(segment, max, last) {
 
     // stop condition
     if(max <= 0) {
-        drawLine(segment);
+        //drawLine(segment);
         return;
     }
 
+    var intersection = undefined;
     for(var i in scene) {
         if(scene[i].primitive.type != jeometry.primitives.SEGMENT)
             continue;
@@ -145,18 +146,25 @@ function draw_reflection_single(segment, max, last) {
             continue;
 
         var segment2 = scene[i].primitive;
-        var p = jeometry.intersection.get(segment2, segment);
+        var p = jeometry.intersection.segments_plus(segment, segment2);
 
         if(p!=undefined) {
-            drawLine( jeometry.primitives.segment(segment.p1, p) );
-
-            segment = jeometry.reflection(segment, segment2);
-            segment.p2 = segment.p2.subtract(p).normalize().multiply_scalar(500).add(p);
-
-            return draw_reflection_single(segment.clone(), max-1, segment2);
-
+            if(intersection==undefined) {
+                intersection=p;
+            } else if(p.segment1t < intersection.segment1t) {
+                intersection=p;
+            }
         }
 
+    }
+
+    if(intersection!=undefined) {
+        drawLine( jeometry.primitives.segment(intersection.segment1.p1, intersection.point) );
+
+        segment = jeometry.reflection(segment, intersection.segment2);
+        segment.p2 = segment.p2.subtract(intersection.point).normalize().multiply_scalar(500).add(intersection.point);
+
+        return draw_reflection_single(segment.clone(), max-1, intersection.segment2);
     }
 
 
@@ -335,110 +343,70 @@ function mouseMove(pos) {
 
             drawLine( jeometry.primitives.segment(previous, pos) );
 
+            var rgb = new RGBAColor();
+            var points;
             for(var i in scene) {
 
-                var p = jeometry.intersection.get(scene[i].primitive, segment);
-                try{
-                    if(p.type == undefined) {
-                        for(j in p) {
-                            drawPoint(p[j]);
-                        }
-                    } else {
-                        drawPoint(p);
-
-//                        if(scene[i].primitive.type == jeometry.primitives.SEGMENT) {
-//
-//                            var segment2 = scene[i].primitive;
-
-//                            setStrokeColor("green");
-//                            drawLine(jeometry.reflection(segment, segment2));
-//                            setStrokeColor("red");
-
-//                            var vector_v = segment.p1.subtract(p);
-//                            var vector_s = segment2.p1.subtract(p);
-//
-//                            var normal = jeometry.primitives.segment(vector_s, jeometry.primitives.point(0,0)).normal();
-//                            var vector_n = normal.p1.negate();
-//
-//                            var vector_n_unit = vector_n.normalize();
-//
-//                            var dot = vector_n_unit.dot_product(vector_v);
-//                            var vector_dot = vector_n_unit.multiply_scalar(dot);
-//
-//
-//                            setStrokeColor("orange");
-//                            drawLine(jeometry.primitives.segment(p, vector_v.add(p)));
-//                            drawLine(jeometry.primitives.segment(p, vector_s.add(p)));
-//                            drawLine(jeometry.primitives.segment(p, vector_n.add(p)));
-//                            setStrokeColor("blue");
-//                            drawLine(jeometry.primitives.segment(p, vector_n.add(vector_v).add(p)));
-////                            drawLine(jeometry.primitives.segment(sum, p));
-//                            setStrokeColor("green");
-//                            drawLine(jeometry.primitives.segment(p, vector_dot.add(p)));
-//                            var r = jeometry.primitives.segment(p, vector_v.negate().add(vector_dot.multiply_scalar(2)).add(p));
-//                            drawLine(r);
-////                            for(var ii=0.1; ii<1.0; ii+=0.1)
-////                                drawPoint(r.point_on_segment(ii));
-////                            drawLine(jeometry.primitives.segment(a, p));
-//                            setStrokeColor("red");
-//                        }
+                if(scene[i].primitive.type == jeometry.primitives.SEGMENT) {
+                    var p = jeometry.intersection.segments_plus(segment, scene[i].primitive);
+                    if(p!=undefined) {
+                        rgb.setFromHSV(100* p.segment2t, 1, 1);
+                        setFillColor("rgb("+rgb.r+","+rgb.g+","+rgb.b+")");
+                        drawPoint(p.point);
                     }
-
-                } catch(e) {
-                    // it has no intersection
                 }
 
-                if(scene[i].primitive.type == jeometry.primitives.TRIANGLE && p != undefined && p.length != undefined && p.length == 2) {
-
-                    var triangle = scene[i].primitive;
-
-                    var p1 = jeometry.intersection.get(triangle.side1, segment);
-                    var p2 = jeometry.intersection.get(triangle.side2, segment);
-                    var p3 = jeometry.intersection.get(triangle.side3, segment);
-
-                    var t1 = triangle.p1;
-                    var t2 = triangle.p2;
-                    var t3 = triangle.p3;
-
-                    var on_poly1 = true;
-
-                    var polygon1 = Array();
-                    var polygon2 = Array();
-
-                    if(on_poly1) polygon1.push(t1); else polygon2.push(t1);
-                    if(p1) {
-                        polygon1.push(p1);
-                        polygon2.push(p1);
-                        on_poly1 = !on_poly1;
-                    }
-                    if(on_poly1) polygon1.push(t2); else polygon2.push(t2);
-                    if(p2) {
-                        polygon1.push(p2);
-                        polygon2.push(p2);
-                        on_poly1 = !on_poly1;
-                    }
-                    if(on_poly1) polygon1.push(t3); else polygon2.push(t3);
-                    if(p3) {
-                        polygon1.push(p3);
-                        polygon2.push(p3);
-                        on_poly1 = !on_poly1;
-                    }
-
-                    if(polygon1.length > 2) {
-                        setFillColor("green");
-                        drawPolygon(jeometry.primitives.polygon(polygon1));
-                        previousFillColor();
-                    }
-
-                    if(polygon2.length > 2) {
-                        setFillColor("orange");
-                        drawPolygon(jeometry.primitives.polygon(polygon2));
-                        previousFillColor();
-                    }
-
-
-
-                }
+//                if(scene[i].primitive.type == jeometry.primitives.TRIANGLE && p != undefined && p.length != undefined && p.length == 2) {
+//
+//                    var triangle = scene[i].primitive;
+//
+//                    var p1 = jeometry.intersection.get(triangle.side1, segment);
+//                    var p2 = jeometry.intersection.get(triangle.side2, segment);
+//                    var p3 = jeometry.intersection.get(triangle.side3, segment);
+//
+//                    var t1 = triangle.p1;
+//                    var t2 = triangle.p2;
+//                    var t3 = triangle.p3;
+//
+//                    var on_poly1 = true;
+//
+//                    var polygon1 = Array();
+//                    var polygon2 = Array();
+//
+//                    if(on_poly1) polygon1.push(t1); else polygon2.push(t1);
+//                    if(p1) {
+//                        polygon1.push(p1);
+//                        polygon2.push(p1);
+//                        on_poly1 = !on_poly1;
+//                    }
+//                    if(on_poly1) polygon1.push(t2); else polygon2.push(t2);
+//                    if(p2) {
+//                        polygon1.push(p2);
+//                        polygon2.push(p2);
+//                        on_poly1 = !on_poly1;
+//                    }
+//                    if(on_poly1) polygon1.push(t3); else polygon2.push(t3);
+//                    if(p3) {
+//                        polygon1.push(p3);
+//                        polygon2.push(p3);
+//                        on_poly1 = !on_poly1;
+//                    }
+//
+//                    if(polygon1.length > 2) {
+//                        setFillColor("green");
+//                        drawPolygon(jeometry.primitives.polygon(polygon1));
+//                        previousFillColor();
+//                    }
+//
+//                    if(polygon2.length > 2) {
+//                        setFillColor("orange");
+//                        drawPolygon(jeometry.primitives.polygon(polygon2));
+//                        previousFillColor();
+//                    }
+//
+//
+//
+//                }
 
             }
 
